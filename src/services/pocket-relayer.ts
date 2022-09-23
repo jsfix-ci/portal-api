@@ -9,6 +9,7 @@ import { Applications } from '../models'
 import { BlockchainsRepository } from '../repositories'
 import { ChainChecker, ChainIDFilterOptions } from '../services/chain-checker'
 import { CherryPicker } from '../services/cherry-picker'
+import { MergeFilterOptions, MergeChecker } from '../services/merge-checker'
 import { MetricsRecorder } from '../services/metrics-recorder'
 import { PHDClient } from '../services/phd-client'
 import { ConsensusFilterOptions, SyncChecker, SyncCheckOptions } from '../services/sync-checker'
@@ -42,6 +43,7 @@ export class PocketRelayer {
   metricsRecorder: MetricsRecorder
   syncChecker: SyncChecker
   chainChecker: ChainChecker
+  mergeChecker: MergeChecker
   cache: Cache
   databaseEncryptionKey: string
   secretKey: string
@@ -65,6 +67,7 @@ export class PocketRelayer {
     metricsRecorder,
     syncChecker,
     chainChecker,
+    mergeChecker,
     cache,
     databaseEncryptionKey,
     secretKey,
@@ -86,6 +89,7 @@ export class PocketRelayer {
     metricsRecorder: MetricsRecorder
     syncChecker: SyncChecker
     chainChecker: ChainChecker
+    mergeChecker: MergeChecker
     cache: Cache
     databaseEncryptionKey: string
     secretKey: string
@@ -107,6 +111,7 @@ export class PocketRelayer {
     this.metricsRecorder = metricsRecorder
     this.syncChecker = syncChecker
     this.chainChecker = chainChecker
+    this.mergeChecker = mergeChecker
     this.cache = cache
     this.databaseEncryptionKey = databaseEncryptionKey
     this.secretKey = secretKey
@@ -691,6 +696,28 @@ export class PocketRelayer {
         origin: this.origin,
       })
       return new Error("session doesn't have any available nodes")
+    }
+
+    if (blockchainID === '0021' || blockchainID === '0022' || blockchainID === '0028') {
+      const mergeStatusOptions: MergeFilterOptions = {
+        nodes,
+        requestID,
+        blockchainID,
+        pocketAAT: pocketAAT,
+        applicationID,
+        applicationPublicKey,
+        relayer: this.relayer,
+        session,
+        path: blockchainPath,
+      }
+
+      const mergeCheckResult = await this.mergeChecker.mergeStatusFilter(mergeStatusOptions)
+
+      if (mergeCheckResult) {
+        nodes = mergeCheckResult.nodes
+      } else {
+        return new Error('Merge check failure; using fallbacks')
+      }
     }
 
     let syncCheckPromise: Promise<CheckResult>

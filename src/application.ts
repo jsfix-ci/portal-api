@@ -9,7 +9,7 @@ import { ApplicationConfig } from '@loopback/core'
 import { RepositoryMixin } from '@loopback/repository'
 import { RestApplication, HttpErrors } from '@loopback/rest'
 import { ServiceMixin } from '@loopback/service-proxy'
-import { InfluxDB } from '@influxdata/influxdb-client'
+import { InfluxDB, DEFAULT_WriteOptions } from '@influxdata/influxdb-client'
 
 import AatPlans from './config/aat-plans.json'
 import { getPocketInstance } from './config/pocket-config'
@@ -68,6 +68,7 @@ export class PocketGatewayApplication extends BootMixin(ServiceMixin(RepositoryM
       ARCHIVAL_CHAINS,
       ALWAYS_REDIRECT_TO_ALTRUISTS,
       REDIS_LOCAL_TTL_FACTOR,
+      RATE_LIMITER_TOKEN,
       RATE_LIMITER_URL,
       PHD_BASE_URL,
       PHD_API_KEY,
@@ -89,6 +90,7 @@ export class PocketGatewayApplication extends BootMixin(ServiceMixin(RepositoryM
     const archivalChains: string[] = (ARCHIVAL_CHAINS || '').replace(' ', '').split(',')
     const alwaysRedirectToAltruists: boolean = ALWAYS_REDIRECT_TO_ALTRUISTS === 'true'
     const ttlFactor = parseFloat(REDIS_LOCAL_TTL_FACTOR) || 1
+    const rateLimiterToken: string = RATE_LIMITER_TOKEN || ''
     const rateLimiterURL: string = RATE_LIMITER_URL || ''
     const phdBaseURL: string = PHD_BASE_URL || ''
     const phdAPIKey: string = PHD_API_KEY || ''
@@ -114,6 +116,7 @@ export class PocketGatewayApplication extends BootMixin(ServiceMixin(RepositoryM
     this.bind('defaultLogLimitBlocks').to(defaultLogLimitBlocks)
     this.bind('alwaysRedirectToAltruists').to(alwaysRedirectToAltruists)
     this.bind('rateLimiterURL').to(rateLimiterURL)
+    this.bind('rateLimiterToken').to(rateLimiterToken)
 
     const redisPort: string = REDIS_PORT || ''
 
@@ -179,8 +182,8 @@ export class PocketGatewayApplication extends BootMixin(ServiceMixin(RepositoryM
     // Influx DB
     const influxBucket = environment === 'production' ? 'mainnetRelay' : 'mainnetRelayStaging'
     const influxClient = new InfluxDB({ url: influxURL, token: influxToken })
-    const writeApi = influxClient.getWriteApi(influxOrg, influxBucket)
-
+    const writeOptions = { ...DEFAULT_WriteOptions, batchSize: 4000 }
+    const writeApi = influxClient.getWriteApi(influxOrg, influxBucket, 'ms', writeOptions)
     this.bind('influxWriteAPI').to(writeApi)
 
     // Create a UID for this process
