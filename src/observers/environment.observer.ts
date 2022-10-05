@@ -36,7 +36,7 @@ export class EnvironmentObserver implements LifeCycleObserver {
     'INFLUX_TOKEN',
     'INFLUX_ORG',
     'ARCHIVAL_CHAINS',
-    // 'BLOCKED_ADDRESSES_URL',
+    'BLOCKED_ADDRESSES_URL',
     'CLICKHOUSE_URL',
     'CLICKHOUSE_USER',
     'CLICKHOUSE_PASSWORD',
