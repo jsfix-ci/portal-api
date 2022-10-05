@@ -3,6 +3,7 @@ import { Session } from '@pokt-foundation/pocketjs-types'
 import { Logger } from 'ajv'
 import extractDomain from 'extract-domain'
 import { Redis } from 'ioredis'
+import PQueue from 'p-queue'
 import { Pool as PGPool } from 'pg'
 
 import pgFormat from 'pg-format'
@@ -10,6 +11,7 @@ import { Point, WriteApi } from '@influxdata/influxdb-client'
 
 import { BLOCK_TIMING_ERROR, CheckMethods } from '../utils/constants'
 import { CherryPicker } from './cherry-picker'
+import { ClickHouseLib } from './clickhouse'
 const os = require('os')
 const logger = require('../services/logger')
 
@@ -19,6 +21,8 @@ export class MetricsRecorder {
   pgPool: PGPool
   cherryPicker: CherryPicker
   processUID: string
+  clickHouse: ClickHouseLib
+  queues: PQueue[]
 
   constructor({
     redis,
@@ -26,18 +30,21 @@ export class MetricsRecorder {
     pgPool,
     cherryPicker,
     processUID,
+    clickHouse,
   }: {
     redis: Redis
     influxWriteAPI: WriteApi
     pgPool: PGPool
     cherryPicker: CherryPicker
     processUID: string
+    clickHouse?: ClickHouseLib
   }) {
     this.redis = redis
     this.influxWriteAPI = influxWriteAPI
     this.pgPool = pgPool
     this.cherryPicker = cherryPicker
     this.processUID = processUID
+    this.clickHouse = clickHouse
   }
 
   // Record relay metrics in redis then push to timescaleDB for analytics
@@ -183,9 +190,10 @@ export class MetricsRecorder {
       const redisTimestamp = Math.floor(new Date().getTime() / 1000)
 
       // InfluxDB
+      const nodePublicKey = serviceNode && !fallback ? 'network' : 'fallback'
       const pointRelay = new Point('relay')
         .tag('applicationPublicKey', applicationPublicKey)
-        .tag('nodePublicKey', serviceNode && !fallback ? 'network' : 'fallback')
+        .tag('nodePublicKey', nodePublicKey)
         .tag('method', method)
         .tag('result', result.toString())
         .tag('blockchain', blockchainID) // 0021
@@ -203,6 +211,39 @@ export class MetricsRecorder {
         .timestamp(relayTimestamp)
 
       this.influxWriteAPI.writePoint(pointOrigin)
+
+      if (this.clickHouse) {
+        this.clickHouse.insert(
+          `insert into relay 
+        (applicationPublicKey,
+          nodePublicKey,
+          method,
+          result,
+          blockchain,
+          host,
+          region,
+          bytes,
+          elapsedTime,
+          timestamp)`,
+          {
+            applicationPublicKey,
+            nodePublicKey,
+            method,
+            result: result.toString(),
+            blockchain: blockchainID,
+            host: os.hostname(),
+            region: process.env.REGION || '',
+            bytes,
+            elapsedTime: elapsedTime.toFixed(4),
+            timestamp: relayTimestamp,
+          }
+        )
+
+        this.clickHouse.insert(`insert into origin (applicationPublicKey, origin)`, {
+          applicationPublicKey,
+          origin,
+        })
+      }
 
       // Store errors in redis and every 10 seconds, push to postgres
       const redisErrorKey = 'errors-' + this.processUID

@@ -12,6 +12,7 @@ import { ApplicationsRepository, BlockchainsRepository, LoadBalancersRepository 
 import { Cache } from '../services/cache'
 import { ChainChecker } from '../services/chain-checker'
 import { CherryPicker } from '../services/cherry-picker'
+import { ClickHouseLib } from '../services/clickhouse'
 import { MergeChecker } from '../services/merge-checker'
 import { MetricsRecorder } from '../services/metrics-recorder'
 import { PocketRelayer } from '../services/pocket-relayer'
@@ -69,6 +70,7 @@ export class V1Controller {
     @inject('dispatchURL') private dispatchURL: string,
     @inject('rateLimiterURL') private rateLimiterURL: string,
     @inject('rateLimiterToken') private rateLimiterToken: string,
+    @inject('clickHouse') private clickHouse: ClickHouseLib,
     @repository(ApplicationsRepository)
     public applicationsRepository: ApplicationsRepository,
     @repository(BlockchainsRepository)
@@ -87,6 +89,7 @@ export class V1Controller {
       pgPool: this.pgPool,
       cherryPicker: this.cherryPicker,
       processUID: this.processUID,
+      clickHouse: this.clickHouse,
     })
     this.syncChecker = new SyncChecker(this.cache, this.metricsRecorder, this.defaultSyncAllowance, this.origin)
     this.chainChecker = new ChainChecker(this.cache, this.metricsRecorder, this.origin)
