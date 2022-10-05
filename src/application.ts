@@ -15,6 +15,7 @@ import AatPlans from './config/aat-plans.json'
 import { getPocketInstance } from './config/pocket-config'
 import { GatewaySequence } from './sequence'
 import { Cache } from './services/cache'
+import { ClickHouseLib } from './services/clickhouse'
 import { getRDSCertificate } from './utils/cache'
 const logger = require('./services/logger')
 
@@ -64,6 +65,10 @@ export class PocketGatewayApplication extends BootMixin(ServiceMixin(RepositoryM
       INFLUX_URL,
       INFLUX_TOKEN,
       INFLUX_ORG,
+      CLICKHOUSE_URL,
+      CLICKHOUSE_DB,
+      CLICKHOUSE_USER,
+      CLICKHOUSE_PASSWORD,
       ARCHIVAL_CHAINS,
       ALWAYS_REDIRECT_TO_ALTRUISTS,
       REDIS_LOCAL_TTL_FACTOR,
@@ -89,6 +94,10 @@ export class PocketGatewayApplication extends BootMixin(ServiceMixin(RepositoryM
     const ttlFactor = parseFloat(REDIS_LOCAL_TTL_FACTOR) || 1
     const rateLimiterURL: string = RATE_LIMITER_URL || ''
     const rateLimiterToken: string = RATE_LIMITER_TOKEN || ''
+    const clickHouseURL: string = CLICKHOUSE_URL || ''
+    const clickHouseUser: string = CLICKHOUSE_USER || ''
+    const clickHousePassword: string = CLICKHOUSE_PASSWORD || ''
+    const clickHouseDB: string = CLICKHOUSE_DB || ''
 
     if (aatPlan !== AatPlans.PREMIUM && !AatPlans.values.includes(aatPlan)) {
       throw new HttpErrors.InternalServerError('Unrecognized AAT Plan')
@@ -175,6 +184,15 @@ export class PocketGatewayApplication extends BootMixin(ServiceMixin(RepositoryM
     const writeOptions = { ...DEFAULT_WriteOptions, batchSize: 4000 }
     const writeApi = influxClient.getWriteApi(influxOrg, influxBucket, 'ms', writeOptions)
     this.bind('influxWriteAPI').to(writeApi)
+
+    // Clickhouse
+    const clickHouse = new ClickHouseLib({
+      url: clickHouseURL,
+      user: clickHouseUser,
+      password: clickHousePassword,
+      database: clickHouseDB,
+    })
+    this.bind('clickHouse').to(clickHouse)
 
     // Create a UID for this process
     const parts = [os.hostname(), process.pid, +new Date()]

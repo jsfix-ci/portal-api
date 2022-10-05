@@ -36,7 +36,11 @@ export class EnvironmentObserver implements LifeCycleObserver {
     'INFLUX_TOKEN',
     'INFLUX_ORG',
     'ARCHIVAL_CHAINS',
-    'BLOCKED_ADDRESSES_URL',
+    // 'BLOCKED_ADDRESSES_URL',
+    'CLICKHOUSE_URL',
+    'CLICKHOUSE_USER',
+    'CLICKHOUSE_PASSWORD',
+    'CLICKHOUSE_DB',
     // Not required in code, but must be present in .env
     'AWS_ACCESS_KEY_ID',
     'AWS_SECRET_ACCESS_KEY',
