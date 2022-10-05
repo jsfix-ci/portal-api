@@ -65,6 +65,10 @@ jobs:
           envkey_LOG_CHERRY_PICKER_STATS: ${{ secrets.LOG_CHERRY_PICKER_STATS }}
           envkey_RATE_LIMITER_URL: ${{ secrets.RATE_LIMITER_URL }}
           envkey_RATE_LIMITER_TOKEN: ${{ secrets.RATE_LIMITER_TOKEN }}
+          envkey_CLICKHOUSE_URL: ${{ secrets.CLICKHOUSE_URL }}
+          envkey_CLICKHOUSE_USER: ${{ secrets.CLICKHOUSE_USER }}
+          envkey_CLICKHOUSE_PASSWORD: ${{ secrets.RATE_CLICKHOUSE_PASSWORD }}
+          envkey_CLICKHOUSE_DB: ${{ secrets.CLICKHOUSE_DB }}
           envkey_REMOTE_REDIS_ENDPOINT: gateway-prod-redis.gvqq2p.clustercfg.cac1.cache.amazonaws.com
           envkey_REGION: 'ca-central-1'
           envkey_REGION_NAME: 'ca-central-1'

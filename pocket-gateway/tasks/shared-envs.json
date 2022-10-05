@@ -144,6 +144,22 @@
     {
       "key": "RATE_LIMITER_TOKEN",
       "value": "${{ secrets.RATE_LIMITER_TOKEN }}"
+    },
+    {
+      "key": "CLICKHOUSE_URL",
+      "value": "${{ secrets.CLICKHOUSE_URL }}"
+    },
+    {
+      "key": "CLICKHOUSE_USER",
+      "value": "${{ secrets.CLICKHOUSE_USER }}"
+    },
+    {
+      "key": "CLICKHOUSE_PASSWORD",
+      "value": "${{ secrets.RATE_CLICKHOUSE_PASSWORD }}"
+    },
+    {
+      "key": "CLICKHOUSE_DB",
+      "value": "${{ secrets.CLICKHOUSE_DB }}"
     }
   ]
 }
