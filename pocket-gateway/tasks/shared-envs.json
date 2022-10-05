@@ -155,7 +155,7 @@
     },
     {
       "key": "CLICKHOUSE_PASSWORD",
-      "value": "${{ secrets.RATE_CLICKHOUSE_PASSWORD }}"
+      "value": "${{ secrets.CLICKHOUSE_PASSWORD }}"
     },
     {
       "key": "CLICKHOUSE_DB",

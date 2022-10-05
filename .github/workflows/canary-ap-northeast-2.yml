@@ -67,7 +67,7 @@ jobs:
           envkey_RATE_LIMITER_TOKEN: ${{ secrets.RATE_LIMITER_TOKEN }}
           envkey_CLICKHOUSE_URL: ${{ secrets.CLICKHOUSE_URL }}
           envkey_CLICKHOUSE_USER: ${{ secrets.CLICKHOUSE_USER }}
-          envkey_CLICKHOUSE_PASSWORD: ${{ secrets.RATE_CLICKHOUSE_PASSWORD }}
+          envkey_CLICKHOUSE_PASSWORD: ${{ secrets.CLICKHOUSE_PASSWORD }}
           envkey_CLICKHOUSE_DB: ${{ secrets.CLICKHOUSE_DB }}
           envkey_REMOTE_REDIS_ENDPOINT: gateway-canary-redis.jmonrz.clustercfg.apn2.cache.amazonaws.com
           envkey_REGION: 'ap-northeast-2'
